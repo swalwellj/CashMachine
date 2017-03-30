@@ -24,15 +24,18 @@ namespace SpecialCashMachine
             Cassettes = cassettes;
         }
 
-        public decimal Balance => GetBalance();
+        public  decimal Balance =>  GetBalance().Result  ;
 
         public IEnumerable<ICassette> Cassettes { get; set; }
 
         public List<ChangeItem> WithdrawalAmounts { get; private set; }
 
-        private decimal GetBalance()
+        private  Task<decimal> GetBalance()
         {
-            return Cassettes.Sum(c => c.Total);
+
+            return Task.Run<decimal>(() => { return Cassettes.Sum(c => c.Total); } );
+                
+
         }
 
         public async Task<Transaction> Dispense(decimal amount, Algorithm algo)
@@ -40,21 +43,21 @@ namespace SpecialCashMachine
             Transaction transaction =  new Transaction();
 
                 
-            if (amount <= GetBalance())
+            if (amount <= Balance)
             {             
                 Calculate(amount,algo);
-                transaction = GetChange();
+                transaction = await GetChange();
             }
             else
             {
                 transaction.TranscationStatus = Status.Error;
-                transaction.ErrorMessage = $"The requested amount of {amount.ToString("C")} exceeds the available balance of {GetBalance().ToString("C")}";
+                transaction.ErrorMessage = $"The requested amount of {amount.ToString("C")} exceeds the available balance of {Balance.ToString("C")}";
             }
             return  transaction;
         }
 
 
-        private Transaction GetChange()
+        private async Task<Transaction> GetChange()
         {
            
             return new Transaction
@@ -62,7 +65,7 @@ namespace SpecialCashMachine
                 TranscationStatus = Status.Ok,
                 VendedChange = new Change
                 {
-                    RemainingBalance = GetBalance(),
+                    RemainingBalance = Balance,
                     WithdrawalAmounts = WithdrawalAmounts
                 }
                 
@@ -80,7 +83,7 @@ namespace SpecialCashMachine
                     sb.AppendLine($"{item.Denomination.ToString("C")} x {item.Quantity}");
                 }
             }
-            sb.AppendLine($"Remaining Balance {GetBalance().ToString("C")}");
+            sb.AppendLine($"Remaining Balance {Balance.ToString("C")}");
             return sb.ToString();
         }
 
