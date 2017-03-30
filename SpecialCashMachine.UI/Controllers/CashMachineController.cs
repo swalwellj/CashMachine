@@ -17,7 +17,7 @@ namespace SpecialCashMachine.UI.Controllers
             decimal arg;
             Decimal.TryParse(amount, out arg);
 
-            var change = CashMachineService.Instance.Dispense(arg, (Algorithm)algorithm);
+            var change = await CashMachineService.Instance.Dispense(arg, (Algorithm)algorithm);
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(change);
             return Ok(json);

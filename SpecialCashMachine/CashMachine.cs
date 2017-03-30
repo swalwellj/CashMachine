@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SpecialCashMachine
 {
@@ -34,7 +35,7 @@ namespace SpecialCashMachine
             return Cassettes.Sum(c => c.Total);
         }
 
-        public Transaction Dispense(decimal amount, Algorithm algo)
+        public async Task<Transaction> Dispense(decimal amount, Algorithm algo)
         {
             Transaction transaction =  new Transaction();
 
@@ -49,7 +50,7 @@ namespace SpecialCashMachine
                 transaction.TranscationStatus = Status.Error;
                 transaction.ErrorMessage = $"The requested amount of {amount.ToString("C")} exceeds the available balance of {GetBalance().ToString("C")}";
             }
-            return transaction;
+            return  transaction;
         }
 
 
