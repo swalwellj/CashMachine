@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+
+<html ng-app="cashMachine">
+<head>
+    <title></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="app/style/styles.css"/>
+    <link href="app/style/angular-busy.css" rel="stylesheet" />
+</head>
+<body ng-controller="homeController">
+
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+
+                <a class="navbar-brand" href="#">Cash Machine</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse">
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Begin page content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="page-header">
+                    <h1>A Very Special Cash Machine</h1>
+                </div>
+                <div class="alert alert-danger" role="alert" ng-if="errorMessage">
+                    {{errorMessage}}
+                </div>
+                <form name="frmCm" novalidate ng-submit="getChange()" cg-busy="busyPromise">
+                    <div class="form-group" ng-class="{ 'has-error': frmCm.withDraw.$touched && frmCm.withDraw.$invalid}">
+                        <label for="withDraw">Please enter the amount you wish to withdraw</label>
+                        <input class="form-control" id="withDraw" name="withDraw" placeholder="amount" required ng-model="amount" ng-pattern="/^(?:[0-9]+(?:\.[0-9]{0,2})?)?$/">
+                        <div class="help-block" ng-messages="frmCm.withDraw.$error" ng-if="frmCm.withDraw.$touched && frmCm.withDraw.$invalid">
+
+                            <p ng-message="pattern">You must enter a valid monetary amount e.g 124.66</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="radio" >
+                            <label>
+                                <input type="radio"  ng-model="algorithm"  value="0" ng-checked="true">
+                                Dispense the least amount of notes possible
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio"  ng-model="algorithm"  value="1">
+                                Dispense as many £20 notes as possible
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" ng-disabled="frmCm.$invalid">Submit</button>
+                </form>
+            
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+
+                <div ng-if="showResults">
+                    <h1>Remaining Balance: {{change.VendedChange.RemainingBalance | currency:"£"}}</h1>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Denomination</th>
+                                <th>Quantity Dispensed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in change.VendedChange.WithdrawalAmounts">
+                                <td>{{item.Denomination | currency:"£"}}</td>
+                                <td>{{item.Quantity}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="text-muted"></p>
+        </div>
+    </footer>
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="app/lib/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-messages/1.6.3/angular-messages.min.js"></script>
+    <script src="app/lib/angular-busy.min.js"></script>
+    <script src="app/app.module.js"></script>
+    <script src="app/home.controller.js"></script>
+</body>
+</html>

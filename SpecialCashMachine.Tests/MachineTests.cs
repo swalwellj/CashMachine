@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Moq;
 using NUnit.Framework;
 
@@ -62,11 +63,12 @@ namespace SpecialCashMachine.Tests
         {
             _sut.Dispense(120.23m, Algorithm.LeastItems);
 
-            Assert.IsTrue(_sut.WithdrawalAmounts[50.00m] == 2);
-            Assert.IsTrue(_sut.WithdrawalAmounts[20.00m] == 1);
-            Assert.IsTrue(_sut.WithdrawalAmounts[0.20m] == 1);
-            Assert.IsTrue(_sut.WithdrawalAmounts[0.02m] == 1);
-            Assert.IsTrue(_sut.WithdrawalAmounts[0.01m] == 1);
+            Assert.IsTrue(_sut.WithdrawalAmounts.First(x => x.Denomination == 50.00m).Quantity == 2);
+            Assert.IsTrue(_sut.WithdrawalAmounts.First(x => x.Denomination == 20.00m).Quantity == 1);
+            Assert.IsTrue(_sut.WithdrawalAmounts.First(x => x.Denomination == 0.20m).Quantity == 1);
+            Assert.IsTrue(_sut.WithdrawalAmounts.First(x => x.Denomination == 0.02m).Quantity == 1);
+            Assert.IsTrue(_sut.WithdrawalAmounts.First(x => x.Denomination == 0.01m).Quantity == 1);
+ 
         }
 
 
@@ -83,14 +85,14 @@ namespace SpecialCashMachine.Tests
         {
             _sut.Dispense(120.00m, Algorithm.FavouredDenomination);
 
-            Assert.IsTrue(_sut.WithdrawalAmounts[20.00m] == 6);
+            Assert.IsTrue(_sut.WithdrawalAmounts.First(x=>x.Denomination == 20.00m).Quantity == 6);
         }
 
         [Test]
         public void ShouldStillSelectIfAmountLessThanRequestedFavouredDenomination()
         {
-            _sut.Dispense(10.00m, Algorithm.FavouredDenomination);
-            Assert.IsTrue(_sut.WithdrawalAmounts[10.00m] == 1);
+            _sut.Dispense(120.00m, Algorithm.FavouredDenomination);
+            Assert.IsTrue(_sut.WithdrawalAmounts.First(x => x.Denomination == 20.00m).Quantity == 6);
         }
 
         [Test]
@@ -100,6 +102,15 @@ namespace SpecialCashMachine.Tests
             _sut.Dispense(28.00m, Algorithm.LeastItems);
 
             Assert.IsTrue(_sut.Balance == 4600.00m);
+        }
+
+        [Test]
+        public void ShouldGoToZeroBalance()
+        {
+            _sut.Dispense(638.00m, Algorithm.LeastItems);
+            _sut.Dispense(4000.00m, Algorithm.LeastItems);
+
+            Assert.IsTrue(_sut.Balance == 0.00m);
         }
 
     }

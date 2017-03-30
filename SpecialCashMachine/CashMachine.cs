@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SpecialCashMachine.Model;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -26,27 +27,45 @@ namespace SpecialCashMachine
 
         public IEnumerable<ICassette> Cassettes { get; set; }
 
-        public Dictionary<decimal, int> WithdrawalAmounts { get; private set; }
+        public List<ChangeItem> WithdrawalAmounts { get; private set; }
 
         private decimal GetBalance()
         {
             return Cassettes.Sum(c => c.Total);
         }
 
-        public string Dispense(decimal amount, Algorithm algo)
+        public Transaction Dispense(decimal amount, Algorithm algo)
         {
-            string msg = string.Empty;
-            WithdrawalAmounts = new Dictionary<decimal, int>();           
+            Transaction transaction =  new Transaction();
+
+                
             if (amount <= GetBalance())
             {             
                 Calculate(amount,algo);
-                msg = GetFormattedMessage();
+                transaction = GetChange();
             }
             else
             {
-                msg = $"The requested amount of {amount.ToString("C")} exceeds the available balance of {GetBalance().ToString("C")}";
+                transaction.TranscationStatus = Status.Error;
+                transaction.ErrorMessage = $"The requested amount of {amount.ToString("C")} exceeds the available balance of {GetBalance().ToString("C")}";
             }
-            return msg;
+            return transaction;
+        }
+
+
+        private Transaction GetChange()
+        {
+           
+            return new Transaction
+            {
+                TranscationStatus = Status.Ok,
+                VendedChange = new Change
+                {
+                    RemainingBalance = GetBalance(),
+                    WithdrawalAmounts = WithdrawalAmounts
+                }
+                
+            };
         }
 
         private string GetFormattedMessage()
@@ -55,9 +74,9 @@ namespace SpecialCashMachine
             sb.AppendLine("Dispensing:");
             foreach (var item in WithdrawalAmounts)
             {
-                if (item.Value > 0)
+                if (item.Quantity > 0)
                 {
-                    sb.AppendLine($"{item.Key.ToString("C")} x {item.Value}");
+                    sb.AppendLine($"{item.Denomination.ToString("C")} x {item.Quantity}");
                 }
             }
             sb.AppendLine($"Remaining Balance {GetBalance().ToString("C")}");
@@ -69,11 +88,15 @@ namespace SpecialCashMachine
         {
             _amountRemaining = amount;
             var sortedList = OrderCassetteList(favAlgorithm);
-            WithdrawalAmounts = new Dictionary<decimal, int>();
+            WithdrawalAmounts = new List<ChangeItem>();
             foreach (var cassette in sortedList)
             {
                 int no = Check(cassette);
-                WithdrawalAmounts.Add(cassette.Denomination, no);
+                if(no > 0)
+                {
+                    WithdrawalAmounts.Add(new ChangeItem { Denomination = cassette.Denomination, Quantity = no });
+                }
+               
             }
         }
 
