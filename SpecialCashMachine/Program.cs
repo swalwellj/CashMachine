@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
+using SpecialCashMachine.Model;
 using static System.Decimal;
 
 namespace SpecialCashMachine
@@ -31,8 +33,34 @@ namespace SpecialCashMachine
         {
             if (_withdraw > 0)
             {
-                Console.WriteLine(_cashMachine.Dispense(_withdraw, (Algorithm)_selected));
+                var transaction = _cashMachine.Dispense(_withdraw, (Algorithm)_selected).Result;
+                string formattedMsg;
+                if (transaction.TranscationStatus == Status.Ok)
+                {
+                  formattedMsg  = GetFormattedMessage(transaction);
+                }
+                else
+                {
+                    formattedMsg = transaction.ErrorMessage;
+                }
+
+                Console.WriteLine(formattedMsg);
             }
+        }
+
+        private static string GetFormattedMessage(Transaction transaction)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Dispensing:");
+            foreach (var item in transaction.VendedChange.WithdrawalAmounts)
+            {
+                if (item.Quantity > 0)
+                {
+                    sb.AppendLine($"{item.Denomination.ToString("C")} x {item.Quantity}");
+                }
+            }
+            sb.AppendLine($"Remaining Balance {transaction.VendedChange.RemainingBalance.ToString("C")}");
+            return sb.ToString();
         }
 
         private static void NextTransaction()
